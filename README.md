@@ -184,3 +184,317 @@ Esta imagen es el código que se ha producido para modo "production". Abajo ves 
 <br>
 
 ***Fuente:*** [https://desarrolloweb.com/articulos/primeros-pasos-webpack.html](https://desarrolloweb.com/articulos/primeros-pasos-webpack.html)
+
+## Configuración de webpack.config.js
+
+- El archivo de configuración nos va ayudar a poder establecer la configuración y elementos que vamos a utilizar
+- Para poder crear el archivo de configuración en la raíz del proyecto creamos un archivo llamado `webpack.config.js`
+- En el mismo debemos decir:
+	- El punto de entrada
+	- Hacia a donde a enviar la configuración de nuestro proyecto
+	- Las extensiones que vamos usar
+
+```javascript
+const path = require('path');
+
+module.exports = {
+  // Entry nos permite decir el punto de entrada de nuestra aplicación
+  entry: "./src/index.js",
+  // Output nos permite decir hacia dónde va enviar lo que va a preparar webpacks
+  output: {
+    // path es donde estará la carpeta donde se guardará los archivos
+    // Con path.resolve podemos decir dónde va estar la carpeta y la ubicación del mismo
+    path: path.resolve(__dirname, "dist"),
+    // filename le pone el nombre al archivo final
+    filename: "main.js"
+  },
+  resolve: {
+    // Aqui ponemos las extensiones que tendremos en nuestro proyecto para webpack los lea
+    extensions: [".js"]
+  },
+}
+```
+
+- El flag —config indica donde estará nuestro archivo de configuración
+
+`npx webpack --mode production --config webpack.config.js`
+
+- Para poder hacer más amigable el comando puedes crear un script en `package.json`
+
+```json
+"scripts": {
+		...
+    "build": "webpack --mode production --config webpack.config.js"
+  },
+```
+**RESUMEN:** Puedes crear un archivo webpack.config.js en el cual estarán las configuraciones con las cuales webpack trabajara, entre ellas están los puntos de entrada y salida, extensiones de archivos, entre otras características que se verán próximamente en él curso.
+
+## Babel Loader para JavaScript
+
+- Babel te permite hacer que tu código JavaScript sea compatible con todos los navegadores
+- Debes agregar a tu proyecto las siguientes dependencias
+
+**NPM**
+`npm install babel-loader @babel/core @babel/preset-env @babel/plugin-transform-runtime -D`
+
+**YARN**
+`yarn add babel-loader @babel/core @babel/preset-env @babel/plugin-transform-runtime -D`
+
+- **babel-loader** nos permite usar babel con webpack
+- **@babel/core** es babel en general
+- **@babel/preset-env** trae y te permite usar las ultimas características de JavaScript
+- **@babel/plugin-transform-runtime** te permite trabajar con todo el tema de asincronismo como pueden ser `async` y `await`
+- Debes crear el archivo de configuración de babel el cual tiene como nombre `.babelrc` con la siguiente configuración:
+
+```.babelrc
+{
+  "presets": [
+    "@babel/preset-env"
+  ],
+  "plugins": [
+    "@babel/plugin-transform-runtime"
+  ]
+}
+```
+
+- Para comenzar a utilizar webpack debemos agregar la siguiente configuración en `webpack.config.js`
+
+```javascript
+{
+...,
+module: {
+    rules: [
+      {
+        // 'Test' declara que extensión de archivos aplicara el loader
+        test: /\.m?js$/,
+        // 'Use' es un arreglo u objeto donde dices que loader aplicaras
+        use: {
+          loader: "babel-loader"
+        },
+        // 'Exclude' permite omitir archivos o carpetas especificas
+        exclude: /node_modules/
+      }
+    ]
+  }
+}
+```
+
+**RESUMEN:** Babel te ayuda a transpilar el código JavaScript, a un resultado el cual todos los navegadores lo puedan entender y ejecutar. Trae "extensiones" o plugins las cuales nos permiten tener características más allá del JavaScript común.
+
+## HtmlWebpackPlugin
+
+Es un plugin para inyectar javascript, css, favicons, y nos facilita la tarea de enlazar los bundles a nuestro template HTML.
+
+HtmlWebpackPlugin agrega las etiquetas de los archivos de las que se necesitan cargar en el documento HTML. Por ejemplo: la etiqueta script y la etiqueta link:css
+
+### Instalación
+
+**NPM**
+`npm i html-webpack-plugin -D`
+
+**YARN**
+`yarn add html-webpack-plugin -D`
+
+- Después añadimos esta dependencia a la configuración de webpack en el archivo `webpack.config.js`
+
+```javascript
+const path = require('path');
+
+//traemos esta dependencia que la instalamos con un comando de npm previamente
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+
+module.exports = {
+  entry: "./src/index.js",
+  output: {
+    path: path.resolve(__dirname, "dist"),
+    filename: "main.js"
+  },
+  resolve: {
+    extensions: [".js"]
+  },
+  module: {
+    rules: [
+      {
+        test: /\.m?js$/,
+        exclude: /node_modules/,
+        use: {
+          loader: "babel-loader"
+        }
+      }
+    ]
+  },
+
+  plugins: [
+     /*
+	 	 hacemos una instancia de lo que definimos en el inicio del archivo
+      	 le anadimos por parametro un objeto donde vamos a tener las
+     	 configuraciones que le vamos anadir a nuestro plugin
+	*/
+    new HtmlWebpackPlugin({
+
+		//inyecta el bundle al template html
+      inject: true,
+
+		//la ruta al template html
+      template: './public/index.html',
+
+		//nombre final del archivo
+      filename: './index.html'
+    })
+  ]
+}
+```
+
+- Eliminamos el script de nuestro html porque webpack se encargara de insertar el script que compila en nuestro html
+
+```HTML
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="../src/styles/main.css">
+  <title>JS Portfolio</title>
+</head>
+
+<body>
+  <div id="main"></div>
+  <!-- <script type="module" src="./index.js"></script> -->
+</body>
+
+</html>
+```
+
+- Compilamos webpack
+
+`npm run build`
+
+- Una vez compilamos nuestro archivo de webpack se insertara el main.js en nuetsro html, agregamos otro script para ejecutar mas facil nuestros comando.
+
+## Loaders para CSS y preprocesadores de CSS
+
+Un **preprocesador** CSS es un programa que te permite generar CSS a partir de la syntax única del preprocesador. Existen varios preprocesadores CSS de los cuales escoger, sin embargo, la mayoría de preprocesadores CSS añadirán algunas características que no existen en CSS puro, como variable, mixins, selectores anidados, entre otros. Estas características hacen la estructura de CSS más legible y fácil de mantener.
+
+Post **procesadores** son herramientas que procesan el CSS y lo transforman en una nueva hoja de CSS que le permiten optimizar y automatizar los estilos para los navegadores actuales.
+
+### MiniCssExtractPlugin
+
+Este plugin extrae el CSS en archivos separados.Crea un archivo CSS por cada archivo JS que contiene CSS.Soporta la carga bajo demanda de CSS y SourceMaps.
+
+Se basa en una nueva característica de webpack v5 y requiere webpack 5 para funcionar.
+
+Comparado con el extracto de texto,paquete web y enchufe:
+
+- Carga asíncrona
+- No hay duplicación de la compilación (rendimiento)
+- Más fácil de usar
+- Específico del CSS
+
+Para comenzar, deberá instalar `mini-css-extract-plugin` :
+**npm**
+`npm i mini-css-extract-plugin -D`
+
+**yarn**
+`yarn add mini-css-extract-plugin -D`
+
+*Se recomienda combinar mini-css-extract-plugin con css-loader*
+
+- Para dar soporte a CSS en webpack debes instalar los siguientes paquetes 
+
+**NPM**
+
+`npm i mini-css-extract-plugin css-loader -D`
+
+**YARN**
+
+`yarn add mini-css-extract-plugin css-loader -D`
+
+- css-loader ⇒ Loader para reconocer CSS
+- mini-css-extract-plugin ⇒ Extrae el CSS en archivos
+- Para comenzar debemos agregar las configuraciones de webpack al archivo `webpack.config.js`
+
+```javascript
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+
+module.exports = {
+	...,
+	module: {
+    rules: [
+	   ...,
+      {
+        test:  /\.css$/i
+        use: [
+          MiniCssExtractPlugin.loader,
+          "css-loader",
+        ]
+      }
+    ]
+  },
+  plugins: [
+	...,
+    new MiniCssExtractPlugin(),
+  ]
+}
+```
+
+- Si deseamos posteriormente podemos agregar herramientas poderosas de CSS como ser:
+	 - pre procesadores
+	 	  - Sass
+		  - Less
+		  - Stylus
+	 - post procesadores
+	 	 - Post CSS
+
+- Eliminamos la etiqueta *link:css* de nuestro html
+
+```HTML
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JS Portfolio</title>
+</head>
+
+<body>
+  <div id="main"></div>
+  <!-- <script type="module" src="./index.js"></script> -->
+</body>
+
+</html>
+```
+
+- Luego importamos el archivo *CSS* en el *index.js* de el proyecto:
+
+```javascript
+import Template from './templates/Template.js';
+import './styles/main.css'; // IMPORTAMOS EL ARCHIVO CSS
+
+(async function App() {
+  const main = null || document.getElementById('main');
+  main.innerHTML = await Template();
+})();
+
+```
+### Añadir Stylus
+
+Utizamos el comando `npm i stylus stylus-loader -D`
+
+Luego añadimos la sigiente configuración en el archivo `webpack.config.js`}
+
+```javascript
+{
+	test: /\.css|.styl$/i,
+	use: [
+		MiniCssExtractPlugin.loader,
+		'css-loader',
+		'stylus-loader'
+	],
+}
+```
+
+**RESUMEN:** Puedes dar soporte a CSS en webpack mediante loaders y plugins, además que puedes dar superpoderes al mismo con las nuevas herramientas conocidas como pre procesadores y post procesadores.
