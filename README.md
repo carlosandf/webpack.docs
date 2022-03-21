@@ -381,7 +381,7 @@ Post **procesadores** son herramientas que procesan el CSS y lo transforman en u
 
 ### MiniCssExtractPlugin
 
-Este plugin extrae el CSS en archivos separados.Crea un archivo CSS por cada archivo JS que contiene CSS.Soporta la carga bajo demanda de CSS y SourceMaps.
+Este plugin extrae el CSS en archivos separados.Crea un archivo CSS por cada archivo JS que contiene CSS. Soporta la carga bajo demanda de CSS y SourceMaps.
 
 Se basa en una nueva característica de webpack v5 y requiere webpack 5 para funcionar.
 
@@ -498,3 +498,42 @@ Luego añadimos la sigiente configuración en el archivo `webpack.config.js`}
 ```
 
 **RESUMEN:** Puedes dar soporte a CSS en webpack mediante loaders y plugins, además que puedes dar superpoderes al mismo con las nuevas herramientas conocidas como pre procesadores y post procesadores.
+
+## Copia de archivos con Webpack
+
+- Si tienes la necesidad de mover un archivo o directorio a tu proyecto final podemos usar un plugin llamado “copy-webpack-plugin”
+- Para instalarlo debemos ejecutar el siguiente comando:
+
+**NPM**
+
+`npm i copy-webpack-plugin -D`
+
+**YARN**
+
+`yarn add copy-webpack-plugin -D`
+
+- Para poder comenzar a usarlo debemos agregar estas configuraciones a `webpack.config.js`
+
+```javascript
+const path = require('path');
+
+const CopyPlugin = require('copy-webpack-plugin');
+
+module.exports = {
+	...
+  plugins: [
+    new CopyPlugin({
+      patterns: [
+        {
+          from: path.resolve(__dirname, "src", "assets/images"),
+          to: "assets/images"
+        }
+      ]
+    }),
+  ]
+}
+```
+
+- Son importante las propiedades from y to
+	 - From ⇒ que recurso (archivo o directorio) deseamos copiar al directorio final
+	 - To ⇒ en que ruta dentro de la carpeta final terminara los recursos
